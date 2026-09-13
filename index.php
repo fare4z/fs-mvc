@@ -6,6 +6,7 @@ require_once __DIR__ . '/app/includes/db_connect.php';
 session_start();
 
 use App\Controllers\MainController;
+use App\Controllers\APIController;
 
 $controller = new MainController($conn);
 $action = isset($_GET['action']) ? $_GET['action'] : 'home';
@@ -28,6 +29,10 @@ switch ($action) {
         break;
     case 'edit':
         $controller->editUser();
+        break;
+    case 'api':
+        $apiController = new APIController($conn);
+        $apiController->api();
         break;
     default:
         $controller->home();

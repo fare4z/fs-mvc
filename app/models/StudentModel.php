@@ -55,6 +55,18 @@ class StudentModel
         return $result;
     }
 
+    public function getUserById($id) {
+        $sql = "SELECT id, name, nric, program, role FROM users WHERE id=?";
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bind_param("i", $id);
+        $stmt->execute();
+        $result = $stmt->get_result();
+
+        $user = $result->fetch_assoc();
+        $stmt->close();
+        return $user ?: null;
+    }
+
     public function registerUser($name, $nric, $program, $password, $role = 'student') {
 
         $hashed_password = password_hash($password, PASSWORD_DEFAULT);

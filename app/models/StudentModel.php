@@ -34,18 +34,20 @@ class StudentModel
         return false;
     }
 
-    public function getAllUsers() {
-         $sql = "SELECT id, name, nric, program, role FROM users ORDER BY id ASC";
-         $result = $this->conn->query($sql);
+    public function getAllUsers()
+    {
+        $sql = "SELECT id, name, nric, program, role FROM users ORDER BY id ASC";
+        $result = $this->conn->query($sql);
 
-         if ($result->num_rows > 0) {
+        if ($result->num_rows > 0) {
             return $result->fetch_all(MYSQLI_ASSOC);
-         }
-         return []; // kalau tak ada user, return array kosong
+        }
+        return []; // kalau tak ada user, return array kosong
     }
 
-    public function getUser($nric) {
-         $sql = "SELECT id,name,password, role FROM users WHERE NRIC=?";
+    public function getUser($nric)
+    {
+        $sql = "SELECT id,name,password, role FROM users WHERE NRIC=?";
         $stmt = $this->conn->prepare($sql);
         // Bind
         $stmt->bind_param("s", $nric);
@@ -55,7 +57,8 @@ class StudentModel
         return $result;
     }
 
-    public function registerUser($name, $nric, $program, $password, $role = 'student') {
+    public function registerUser($name, $nric, $program, $password, $role = 'student')
+    {
 
         $hashed_password = password_hash($password, PASSWORD_DEFAULT);
         $sql = "INSERT INTO users (name, nric, program, password, role) VALUES (?, ?, ?, ?, ?)";
@@ -71,10 +74,11 @@ class StudentModel
         return false;
     }
 
-    public function deleteStudent($id) {
+    public function deleteStudent($id)
+    {
         $sql = "DELETE FROM users WHERE id=?";
         $stmt = $this->conn->prepare($sql);
-        $stmt->bind_param("i",$id);
+        $stmt->bind_param("i", $id);
 
         if ($stmt->execute()) {
             $stmt->close();
@@ -84,5 +88,46 @@ class StudentModel
         return false;
     }
 
+    public function getUserById($id)
+    {
+        $sql  = "SELECT id, name, nric, program, role FROM users WHERE id = ?";
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bind_param("i", $id); // "i" = Integer
+        $stmt->execute();
+        $result = $stmt->get_result();
 
+        if ($result->num_rows === 1) {
+            return $result->fetch_assoc();
+        }
+        return false;
+    }
+
+    public function updateUser($id, $name, $nric, $program, $role)
+    {
+        $sql  = "UPDATE users SET name = ?, nric = ?, program = ?, role = ? WHERE id = ?";
+        $stmt = $this->conn->prepare($sql);
+
+        $stmt->bind_param("ssssi", $name, $nric, $program, $role, $id);
+
+
+        if ($stmt->execute()) {
+            return true;
+        }
+        $stmt->close();
+        return false;
+    }
+
+    public function updateUserProfilePicture($id, $profile_picture)
+    {
+        $sql  = "UPDATE users SET profile_picture = ? WHERE id = ?";
+        $stmt = $this->conn->prepare($sql);
+
+        $stmt->bind_param("si", $profile_picture, $id);
+
+        if ($stmt->execute()) {
+            return true;
+        }
+        $stmt->close();
+        return false;
+    }
 }

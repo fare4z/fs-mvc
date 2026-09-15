@@ -10,7 +10,13 @@
             <div class="col-md-10">
                 <div class="card">
                     <div class="card-body">
-        <form method="POST" action="">
+                        <?php if (isset($error)): ?>
+                            <div class="alert alert-danger" role="alert">
+                                <?php echo $error; ?>
+                            </div>
+                        <?php endif; ?>
+        <form method="POST" action="index.php?action=edit&id=<?php echo $user['id']; ?>" enctype="multipart/form-data">
+
             <div class="mb-3">
                 <label for="name" class="form-label fw-medium">Name</label>
                 <input type="text" class="form-control" name="name" value="<?php echo $user['name'];?>">
@@ -32,6 +38,11 @@
                     <option value="student">Student</option>
                     <option value="admin">Admin</option>
                 </select>
+            </div>
+
+            <div class="mb-3">
+                <label for="profile_picture" class="form-label fw-medium">Profile Picture</label>
+                <input type="file" class="form-control" name="profile_picture">
             </div>
 
             <button type="submit" class="btn btn-primary" name="btnUpdate">Update</button>

@@ -68,7 +68,6 @@ class MainController
             }
         }
 
-
         require_once __DIR__ . '/../views/login.php';
         require_once __DIR__ . '/../views/footer.php';
     }
@@ -160,8 +159,84 @@ class MainController
 
     public function editUser()
     {
+        if (!isset($_GET['id'])) {
+            header("Location: index.php?action=dashboard");
+            exit();
+        }
+
+        $id    = $_GET['id'];
+        $error = null;
+
+        if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+            // === POST REQUEST: Form was submitted, process the UPDATE ===
+            $name    = htmlspecialchars(trim($_POST['name']));
+            $nric    = htmlspecialchars(trim($_POST['nric']));
+            $program = htmlspecialchars(trim($_POST['program']));
+            $role    = $_POST['role'];
+            $profile_picture = $_FILES['profile_picture'];
+
+            if ($this->studentModel->updateUser($id, $name, $nric, $program, $role)) {
+                print_r($_FILES['profile_picture']['error']);
+                
+                if ($profile_picture['error'] === UPLOAD_ERR_OK) {
+                    $this->uploadProfilePicture($id, $profile_picture);
+                }
+                
+                $_SESSION['flash_msg'] = ['type' => 'success', 'msg' => 'User updated successfully.'];
+                header("Location: index.php?action=dashboard&status=updated");
+                exit();
+            } else {
+                $_SESSION['flash_msg'] = ['type' => 'error', 'msg' => 'Failed to update user.'];
+                $error = "Failed to update user.";
+            }
+        }
+
+      
+        $user = $this->studentModel->getUserById($id);
+        if (!$user) {
+            die("Student not found!");
+        }
+
         require_once __DIR__ . '/../views/header.php';
         require_once __DIR__ . '/../views/edit_user.php';
         require_once __DIR__ . '/../views/footer.php';
+    }
+
+    public function uploadProfilePicture($userId, $file)
+    {
+        $targetDir = __DIR__ . '/../../uploads/';
+        $targetFile = $targetDir . basename($file['name']);
+        $uploadOk = 1;
+        $imageFileType = strtolower(pathinfo($targetFile, PATHINFO_EXTENSION));
+
+        mkdir($targetDir, 0777, true); // Create the uploads directory if it doesn't exist
+
+        // Check if image file is a actual image or fake image
+        $check = getimagesize($file['tmp_name']);
+        if ($check === false) {
+            $_SESSION['flash_msg'] = ['type' => 'error', 'msg' => 'File is not an image.'];
+            return false;
+        }
+
+        // Check file size (limit to 2MB)
+        if ($file['size'] > 2 * 1024 * 1024) {
+            $_SESSION['flash_msg'] = ['type' => 'error', 'msg' => 'Sorry, your file is too large.'];
+            return false;
+        }
+
+        // Allow certain file formats
+        if (!in_array($imageFileType, ['jpg', 'jpeg', 'png', 'gif'])) {
+            $_SESSION['flash_msg'] = ['type' => 'error', 'msg' => 'Sorry, only JPG, JPEG, PNG & GIF files are allowed.'];
+            return false;
+        }
+
+        // Attempt to move the uploaded file
+        if (move_uploaded_file($file['tmp_name'], $targetFile)) {
+            // Update the user's profile picture path in the database
+            return $this->studentModel->updateUserProfilePicture($userId, basename($file['name']));
+        } else {
+            $_SESSION['flash_msg'] = ['type' => 'error', 'msg' => 'Sorry, there was an error uploading your file.'];
+            return false;
+        }
     }
 }

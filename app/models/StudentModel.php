@@ -90,7 +90,7 @@ class StudentModel
 
     public function getUserById($id)
     {
-        $sql  = "SELECT id, name, nric, program, role FROM users WHERE id = ?";
+        $sql  = "SELECT * FROM users WHERE id = ?";
         $stmt = $this->conn->prepare($sql);
         $stmt->bind_param("i", $id); // "i" = Integer
         $stmt->execute();
@@ -117,12 +117,24 @@ class StudentModel
         return false;
     }
 
-    public function updateUserProfilePicture($id, $profile_picture)
+    public function updateDP($id, $path)
     {
-        $sql  = "UPDATE users SET profile_picture = ? WHERE id = ?";
+        $sql = "UPDATE users set profile_picture=? WHERE id=?";
         $stmt = $this->conn->prepare($sql);
 
-        $stmt->bind_param("si", $profile_picture, $id);
+        $stmt->bind_param("si", $path, $id);
+        if ($stmt->execute()) {
+            return true;
+        }
+        $stmt->close();
+        return false;
+    }
+
+    public function addMarkah($nric, $subjek, $markah)
+    {
+        $sql = "INSERT INTO marks(nric,subjek,markah) values (? ,? ,?)";
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bind_param("sss", $nric, $subjek, $markah);
 
         if ($stmt->execute()) {
             return true;

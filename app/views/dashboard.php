@@ -21,7 +21,9 @@
                                         <th>No. IC</th>
                                         <th>Program</th>
                                         <th>Role</th>
+                                        <?php if ($_SESSION['role'] == 'admin') { ?>
                                         <th>Tindakan</th>
+                                        <?php } ?>
                                     </tr>
                                 </thead>
                                 <?php if (!empty($users)) { ?>
@@ -41,6 +43,7 @@
                                             <td><?= $nric ?></td>
                                             <td><?= $program ?></td>
                                             <td><?= $role ?></td>
+                                            <?php if ($_SESSION['role'] == 'admin') { ?>
                                             <td>
                                                 <a href="index.php?action=edit&&id=<?= $id ?>" class="btn btn-sm btn-warning">Update</a>
                                                 <form method="POST" action="index.php?action=delete" onsubmit="return confirm('Padam rekod ini?')">
@@ -48,8 +51,13 @@
                                                     <input type="hidden" name="id" value="<?= $id ?>">
                                                     <button type="submit" class="btn btn-sm btn-danger">Delete</button>
                                                 </form>
+                                                
+                                        <a href="index.php?action=daftarMarkah&&id=<?= $id ?>" class="btn btn-sm btn-primary">
+                                            Daftar Markah
+                                        </a>
 
                                             </td>
+                                            <?php } ?>
                                         </tr>
                                     <?php $bil++;
                                     }

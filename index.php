@@ -29,6 +29,9 @@ switch ($action) {
     case 'edit':
         $controller->editUser();
         break;
+        case 'daftarMarkah':
+            $controller->daftarMarkah();
+            break;
     default:
         $controller->home();
         break;

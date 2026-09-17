@@ -26,6 +26,17 @@ class MainController
         }
     }
 
+    public function isAdmin()
+    {
+        if ($_SESSION['role'] != 'admin') {
+            $_SESSION['flash_msg'] = ['type' => 'error', 'msg' => 'Restrict Area- Admin Only'];
+            header("Location: index.php?action=dashboard");
+            exit();
+        }
+
+        return true;
+    }
+
     public function home()
     {
         if (isset($_SESSION['logged_in'])) {
@@ -141,6 +152,8 @@ class MainController
 
     public function delete()
     {
+        $this->isAdmin();
+
         if ($_SERVER['REQUEST_METHOD'] == "POST") {
             $id = $_POST['id'];
 
@@ -159,42 +172,35 @@ class MainController
 
     public function editUser()
     {
-        if (!isset($_GET['id'])) {
-            header("Location: index.php?action=dashboard");
-            exit();
-        }
+        $this->isAdmin();
 
-        $id    = $_GET['id'];
-        $error = null;
-
+        $id = $_GET['id'];
         if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-            // === POST REQUEST: Form was submitted, process the UPDATE ===
-            $name    = htmlspecialchars(trim($_POST['name']));
-            $nric    = htmlspecialchars(trim($_POST['nric']));
+            $name = htmlspecialchars(trim($_POST['name']));
+            $nric = htmlspecialchars(trim($_POST['nric']));
             $program = htmlspecialchars(trim($_POST['program']));
-            $role    = $_POST['role'];
+            $role = $_POST['role'];
             $profile_picture = $_FILES['profile_picture'];
 
             if ($this->studentModel->updateUser($id, $name, $nric, $program, $role)) {
-                print_r($_FILES['profile_picture']['error']);
-                
-                if ($profile_picture['error'] === UPLOAD_ERR_OK) {
-                    $this->uploadProfilePicture($id, $profile_picture);
-                }
-                
-                $_SESSION['flash_msg'] = ['type' => 'success', 'msg' => 'User updated successfully.'];
-                header("Location: index.php?action=dashboard&status=updated");
+                $_SESSION['flash_msg'] = [
+                    'type' => 'success',
+                    'msg' => 'Rekod Berjaya Dikemaskini',
+                ];
+
+                $this->uploadProfilePicture($id, $profile_picture);
+                header("Location: index.php?action=dashboard");
                 exit();
             } else {
-                $_SESSION['flash_msg'] = ['type' => 'error', 'msg' => 'Failed to update user.'];
-                $error = "Failed to update user.";
+                $_SESSION['flash_msg'] = [
+                    'type' => 'error',
+                    'msg' => 'Failed to update user',
+                ];
             }
         }
-
-      
         $user = $this->studentModel->getUserById($id);
         if (!$user) {
-            die("Student not found!");
+            die("Student not found");
         }
 
         require_once __DIR__ . '/../views/header.php';
@@ -202,41 +208,76 @@ class MainController
         require_once __DIR__ . '/../views/footer.php';
     }
 
-    public function uploadProfilePicture($userId, $file)
+    public function uploadProfilePicture($id, $file)
     {
         $targetDir = __DIR__ . '/../../uploads/';
         $targetFile = $targetDir . basename($file['name']);
         $uploadOk = 1;
         $imageFileType = strtolower(pathinfo($targetFile, PATHINFO_EXTENSION));
 
-        mkdir($targetDir, 0777, true); // Create the uploads directory if it doesn't exist
+        // Buat folder kalau tak wujud lagi
 
-        // Check if image file is a actual image or fake image
+        if (!is_dir($targetDir)) {
+            mkdir($targetDir, 0777, true);
+        }
+
         $check = getimagesize($file['tmp_name']);
         if ($check === false) {
-            $_SESSION['flash_msg'] = ['type' => 'error', 'msg' => 'File is not an image.'];
+            $_SESSION['flash_msg'] = ['type' => 'error', 'msg' => 'Pastikan format betul'];
             return false;
         }
-
-        // Check file size (limit to 2MB)
+        // limit file size 2mb
         if ($file['size'] > 2 * 1024 * 1024) {
-            $_SESSION['flash_msg'] = ['type' => 'error', 'msg' => 'Sorry, your file is too large.'];
+            $_SESSION['flash_msg'] = ['type' => 'error', 'msg' => 'File lebih 2MB'];
             return false;
         }
 
-        // Allow certain file formats
+        // Benarkan file gambar sahaja
         if (!in_array($imageFileType, ['jpg', 'jpeg', 'png', 'gif'])) {
-            $_SESSION['flash_msg'] = ['type' => 'error', 'msg' => 'Sorry, only JPG, JPEG, PNG & GIF files are allowed.'];
+            $_SESSION['flash_msg'] = ['type' => 'error', 'msg' => 'JPG JPEG PNG GIF Sahaja'];
             return false;
         }
 
-        // Attempt to move the uploaded file
+        // start upload
         if (move_uploaded_file($file['tmp_name'], $targetFile)) {
-            // Update the user's profile picture path in the database
-            return $this->studentModel->updateUserProfilePicture($userId, basename($file['name']));
+            // kalau berjaya, update dalam db
+            return $this->studentModel->updateDP($id, basename($file['name']));
         } else {
-            $_SESSION['flash_msg'] = ['type' => 'error', 'msg' => 'Sorry, there was an error uploading your file.'];
+            $_SESSION['flash_msg'] = ['type' => 'error', 'msg' => 'Tak berjaya'];
             return false;
         }
+    }
+
+    public function daftarMarkah()
+    {
+        $id = $_GET['id'];
+        $data = $this->studentModel->getUserById($id);
+
+        $name = $data['name'];
+        $nric = $data['nric'];
+
+        if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+            $subjek = $_POST['subjek'];
+            $markah = $_POST['markah'];
+
+            $result = $this->studentModel->addMarkah($nric, $subjek, $markah);
+            if ($result) {
+                $_SESSION['flash_msg'] = [
+                    'type' => 'success',
+                    'msg' => 'Rekod Berjaya Dikemaskini',
+                ];
+            } else {
+                $_SESSION['flash_msg'] = [
+                    'type' => 'error',
+                    'msg' => 'Rekod Tidak Dikemaskini',
+                ];
+            }
+
+            header("Location: index.php?action=dashboard");
+        }
+
+        require_once __DIR__ . '/../views/header.php';
+        require_once __DIR__ . '/../views/daftarMarkah.php';
+        require_once __DIR__ . '/../views/footer.php';
     }
 }

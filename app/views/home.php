@@ -68,3 +68,71 @@
         </div>
     </div>
 </section>
+
+<section class="py-5">
+    <div class="container">
+        <h2 class="text-center mb-4">Cuti Umum Malaysia 2026</h2>
+        <div id="holidays-loading" class="text-center text-muted">
+            <i class="fas fa-spinner fa-spin"></i> Memuatkan senarai cuti...
+        </div>
+        <div id="holidays-error" class="alert alert-danger d-none" role="alert"></div>
+        <div class="table-responsive">
+            <table id="holidays-table" class="table table-striped table-bordered d-none">
+                <thead class="table-primary">
+                    <tr>
+                        <th>Tarikh</th>
+                        <th>Perayaan</th>
+                    </tr>
+                </thead>
+                <tbody id="holidays-body"></tbody>
+            </table>
+        </div>
+    </div>
+</section>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const loadingEl = document.getElementById('holidays-loading');
+        const errorEl = document.getElementById('holidays-error');
+        const tableEl = document.getElementById('holidays-table');
+        const bodyEl = document.getElementById('holidays-body');
+
+        fetch('https://p4c6e4mu4k5sg4fwnertd2zgwi0hordn.lambda-url.eu-north-1.on.aws/api/holidays?countryCode=MY&year=2026')
+            .then(function (response) {
+                if (!response.ok) {
+                    throw new Error('HTTP error ' + response.status);
+                }
+                return response.json();
+            })
+            .then(function (holidays) {
+                bodyEl.innerHTML = '';
+
+                holidays.sort(function (a, b) {
+                    return new Date(a.date) - new Date(b.date);
+                });
+
+                holidays.forEach(function (holiday) {
+                    const row = document.createElement('tr');
+
+                    const dateCell = document.createElement('td');
+                    dateCell.textContent = holiday.date;
+
+                    const nameCell = document.createElement('td');
+                    nameCell.textContent = holiday.title ? (holiday.title.original || holiday.title.en) : holiday.name;
+
+                    row.appendChild(dateCell);
+                    row.appendChild(nameCell);
+                    bodyEl.appendChild(row);
+                });
+
+                loadingEl.classList.add('d-none');
+                tableEl.classList.remove('d-none');
+            })
+            .catch(function (error) {
+                loadingEl.classList.add('d-none');
+                errorEl.textContent = 'Gagal memuatkan senarai cuti umum: ' + error.message;
+                errorEl.classList.remove('d-none');
+            });
+    });
+</script>
+

@@ -265,7 +265,7 @@ class MainController
         }
     }
 
-    public function daftarMarkah()
+       public function daftarMarkah()
     {
         $id = $_GET['id'];
         $data = $this->studentModel->getUserById($id);
@@ -316,4 +316,85 @@ class MainController
         require_once __DIR__ . '/../views/daftarMarkah.php';
         require_once __DIR__ . '/../views/footer.php';
     }
+
+    public function apiStudent()
+    {
+        header('Content-Type: application/json');
+
+        $id = $_GET['id'] ?? null;
+        if (!$id) {
+            http_response_code(400);
+            echo json_encode(['error' => 'Parameter id diperlukan']);
+            return;
+        }
+
+        $user = $this->studentModel->getUserById($id);
+        if (!$user) {
+            http_response_code(404);
+            echo json_encode(['error' => 'Pelajar tidak dijumpai']);
+            return;
+        }
+
+        list($cgpa, $gred) = $this->getCgpaAndGred($id);
+
+        echo json_encode([
+            'id' => $user['id'],
+            'name' => $user['name'],
+            'nric' => $user['nric'],
+            'program' => $user['program'],
+            'cgpa' => $cgpa,
+            'gred' => $gred,
+        ]);
+    }
+
+    public function apiStudents()
+    {
+        header('Content-Type: application/json');
+
+        $users = $this->studentModel->getAllUsers();
+        $students = [];
+
+        foreach ($users as $user) {
+            list($cgpa, $gred) = $this->getCgpaAndGred($user['id']);
+
+            $students[] = [
+                'id' => $user['id'],
+                'name' => $user['name'],
+                'nric' => $user['nric'],
+                'program' => $user['program'],
+                'cgpa' => $cgpa,
+                'gred' => $gred,
+            ];
+        }
+
+        echo json_encode($students);
+    }
+
+    private function getCgpaAndGred($id)
+    {
+        $marks = $this->studentModel->getMarksById($id);
+        $totalMarkah = 0;
+        $totalSubjek = count($marks);
+
+        foreach ($marks as $mark) {
+            $totalMarkah += $mark['markah'];
+        }
+
+        $cgpa = $totalSubjek > 0 ? round($totalMarkah / $totalSubjek, 2) : 0;
+
+        return [$cgpa, $this->getGred($cgpa)];
+    }
+
+    private function getGred($cgpa)
+    {
+        if ($cgpa >= 90) return 'A+';
+        if ($cgpa >= 80) return 'A';
+        if ($cgpa >= 70) return 'B+';
+        if ($cgpa >= 60) return 'B';
+        if ($cgpa >= 50) return 'C+';
+        if ($cgpa >= 40) return 'C';
+        return 'F';
+    }
+
+ 
 }

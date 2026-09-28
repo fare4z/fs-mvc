@@ -32,6 +32,12 @@ switch ($action) {
         case 'daftarMarkah':
             $controller->daftarMarkah();
             break;
+    case 'api':
+        $controller->apiStudent();
+        break;
+    case 'apiAll':
+        $controller->apiStudents();
+        break;
     default:
         $controller->home();
         break;

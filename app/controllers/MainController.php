@@ -91,6 +91,23 @@ class MainController
         $users = $this->studentModel->getAllUsers();
         $totalUsers = count($users);
 
+        
+        foreach ($users as &$user) {
+            $marks = $this->studentModel->getMarksById($user['id']);
+            $totalMarks = 0;
+            $totalSubjects = count($marks);
+
+            foreach ($marks as $mark) {
+                $totalMarks += $mark['markah'];
+            }
+            if ($totalSubjects > 0) {
+                $cgpa = round($totalMarks / $totalSubjects, 2);
+            } else {
+                $cgpa = 0;
+            }
+            $user['cgpa'] = $cgpa;
+        }
+
         require_once __DIR__ . '/../views/dashboard.php';
         require_once __DIR__ . '/../views/footer.php';
     }
@@ -252,9 +269,21 @@ class MainController
     {
         $id = $_GET['id'];
         $data = $this->studentModel->getUserById($id);
+        
 
         $name = $data['name'];
         $nric = $data['nric'];
+        $program = $data['program'];
+        $marks = $this->studentModel->getMarksById($id);
+
+        // array kod subjek dan nama subjek untuk dropdown
+
+        $subjects = [
+            'DFP40443' => 'Full Stack Web Development',
+            'DFC10033' => 'Introduction to Computer Systems',
+            'DFC20283' => 'Database Fundamentals',
+            'DFP50463' => 'Java Based Application',
+        ];
 
         if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $subjek = $_POST['subjek'];
@@ -273,7 +302,14 @@ class MainController
                 ];
             }
 
-            header("Location: index.php?action=dashboard");
+            
+            echo "<script>
+                window.opener.location.reload();
+                window.close();
+            </script>";
+
+            // header("Location: index.php?action=dashboard");
+
         }
 
         require_once __DIR__ . '/../views/header.php';

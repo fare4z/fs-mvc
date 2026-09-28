@@ -9,8 +9,8 @@
             <div class="col-md-12">
                 <div class="card">
                     <div class="card-body">
-                      
-<h3>Jumlah Data : <?= $totalUsers ?> Orang.</h3>
+
+                        <h3>Jumlah Data : <?= $totalUsers ?> Orang.</h3>
                         <h4 class="mb-3">Senarai Pengguna</h4>
                         <div class="table-responsive">
                             <table class="table table-striped table-bordered">
@@ -21,8 +21,9 @@
                                         <th>No. IC</th>
                                         <th>Program</th>
                                         <th>Role</th>
+                                        <th>CGPA</th>
                                         <?php if ($_SESSION['role'] == 'admin') { ?>
-                                        <th>Tindakan</th>
+                                            <th>Tindakan</th>
                                         <?php } ?>
                                     </tr>
                                 </thead>
@@ -35,7 +36,8 @@
                                         $program = htmlspecialchars($row['program']);
                                         $role = htmlspecialchars($row['role']);
                                         $id = $row['id'];
-                                        
+                                        $cgpa = $row['cgpa'];
+
                                     ?>
                                         <tr>
                                             <td><?= $bil ?></td>
@@ -43,20 +45,22 @@
                                             <td><?= $nric ?></td>
                                             <td><?= $program ?></td>
                                             <td><?= $role ?></td>
+                                            <td><?= $cgpa ?></td>
                                             <?php if ($_SESSION['role'] == 'admin') { ?>
-                                            <td>
-                                                <a href="index.php?action=edit&&id=<?= $id ?>" class="btn btn-sm btn-warning">Update</a>
-                                                <form method="POST" action="index.php?action=delete" onsubmit="return confirm('Padam rekod ini?')">
-                                                    <input type="hidden" name="action" value="delete">
-                                                    <input type="hidden" name="id" value="<?= $id ?>">
-                                                    <button type="submit" class="btn btn-sm btn-danger">Delete</button>
-                                                </form>
-                                                
-                                        <a href="index.php?action=daftarMarkah&&id=<?= $id ?>" class="btn btn-sm btn-primary">
-                                            Daftar Markah
-                                        </a>
+                                                <td>
+                                                    <a href="index.php?action=edit&&id=<?= $id ?>" class="btn btn-sm btn-warning">Update</a>
+                                                    <form method="POST" action="index.php?action=delete" onsubmit="return confirm('Padam rekod ini?')">
+                                                        <input type="hidden" name="action" value="delete">
+                                                        <input type="hidden" name="id" value="<?= $id ?>">
+                                                        <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+                                                    </form>
+                                                  
+                                                    <a href="index.php?action=daftarMarkah&&id=<?= $id ?>" class="btn btn-sm btn-primary" onclick="window.open(this.href, 'Daftar Markah', 'width=600,height=400'); return false;">
+                                                        Daftar Markah
+                                                    </a>
 
-                                            </td>
+
+                                                </td>
                                             <?php } ?>
                                         </tr>
                                     <?php $bil++;
@@ -78,4 +82,3 @@
         </div>
     </div>
 </section>
-

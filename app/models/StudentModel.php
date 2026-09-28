@@ -142,4 +142,19 @@ class StudentModel
         $stmt->close();
         return false;
     }
+
+ 
+    public function getMarksById($id)
+    {
+        $sql = "SELECT * FROM users LEFT JOIN marks ON users.nric = marks.nric WHERE users.id=?";
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bind_param("i", $id);
+        $stmt->execute();
+        $result = $stmt->get_result();
+
+        if ($result->num_rows > 0) {
+            return $result->fetch_all(MYSQLI_ASSOC);
+        }
+        return [];
+    }
 }

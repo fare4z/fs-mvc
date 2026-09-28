@@ -60,7 +60,7 @@
                             <tbody>
                                 <?php foreach ($marks as $mark) { ?>
                                     <tr>
-                                        <td><?= $mark['subjek'] ?> - <?= $subjects[$mark['subjek']] ?></td>
+                                        <td><?= $mark['subjek'] ?> -  <?php if (isset($subjects[$mark['subjek']])) { ?><?= $subjects[$mark['subjek']] ?><?php } ?></td>
                                         <td><?= $mark['markah'] ?></td>
                                     </tr>
                                 <?php } ?>
